@@ -1,3 +1,5 @@
+# this a comment about extracting subtitles
+
 import openai
 import moviepy.editor as mp
 
