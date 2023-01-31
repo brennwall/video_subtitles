@@ -1,44 +1,54 @@
-import openai
-import moviepy.editor as mp
+from pydub import AudioSegment
+import whisper
+from moviepy.editor import VideoFileClip, TextClip
+from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 
-# Load the video file using moviepy
-print('Loading video file with moviepy...')
-video = mp.VideoFileClip("clip.mp4")
+def convert_to_srt(result):
+    # Initialize the counter for the srt file's subtitle number
+    subtitle_num = 1
 
-# Extract the audio from the video
-print("Extracting audio from video...")
-audio = video.audio
-
-# Convert the audio to a string representation
-print("Converting audio to string...")
-audio_string = str(audio.to_soundarray().tobytes())
-
-# Split the audio string into smaller chunks
-chunk_size = 512
-num_chunks = (len(audio_string) // chunk_size) + 1
-audio_chunks = [audio_string[i:i+chunk_size] for i in range(0, len(audio_string), chunk_size)]
-
-# Initialize the OpenAI API client
-openai.api_key = "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"
-
-# Define the prompt for the GPT-3 model
-prompts = ["Please generate subtitles for the following audio clip:\n\n" + chunk for chunk in audio_chunks]
-
-# Use the OpenAI API to generate text with the prompts
-generated_text = ""
-for i, prompt in enumerate(prompts):
-    print("Generating text for chunk " + str(i) + " of " + str(num_chunks) + "...")
-    completions = openai.Completion.create(
-        engine="text-davinci-002",
-        prompt=prompt,
-        max_tokens=1024,
-        n=1,
-        stop=None,
-        temperature=0.5,
-    )
-    generated_text += completions.choices[0].text
+    # Open a file for writing
+    with open("clip.srt", "w") as file:
+        # Iterate over each segment in the result
+        for segment in result['segments']:
+            # Write the subtitle number
+            file.write(str(subtitle_num) + "\n")
+            
+            # Write the start and end times for the segment
+            start_time = str(int(segment['start'] // 60)).zfill(2) + ":" + str(int(segment['start'] % 60)).zfill(2) + "," + str(int((segment['start'] % 1) * 1000)).zfill(3)
+            end_time = str(int(segment['end'] // 60)).zfill(2) + ":" + str(int(segment['end'] % 60)).zfill(2) + "," + str(int((segment['end'] % 1) * 1000)).zfill(3)
+            file.write(start_time + " --> " + end_time + "\n")
+            
+            # Write the text for the segment
+            file.write(segment['text'] + "\n\n")
+            
+            # Increment the subtitle number
+            subtitle_num += 1
 
 
-# Write the generated text to a .srt file
-with open("subtitles.srt", "w") as file:
-    file.write(generated_text)
+# Load the mp4 file
+sound = AudioSegment.from_file("clip.mp4", format="mp4")
+
+# Save the mp3 file
+sound.export("clip.mp3", format="mp3")
+
+model = whisper.load_model("base")
+result = model.transcribe('clip.mp3')
+convert_to_srt(result)
+
+
+# Load the video file
+video = VideoFileClip("clip.mp4")
+
+# Load the subtitle file
+subtitles = open("clip.srt").read()
+
+# Create the subtitle clip
+subtitle_clip = TextClip(subtitles, fontsize=30, color='white')
+
+# Combine the video and subtitle clips
+final_clip = CompositeVideoClip([video, subtitle_clip.set_pos(("center", 550))])
+
+# # Save the final clip
+final_clip.duration = video.duration
+final_clip.write_videofile("final_video.mp4")
