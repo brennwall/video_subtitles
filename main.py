@@ -14,7 +14,7 @@ print("Converting audio to string...")
 audio_string = str(audio.to_soundarray().tobytes())
 
 # Split the audio string into smaller chunks
-chunk_size = 512
+chunk_size = 2200
 num_chunks = (len(audio_string) // chunk_size) + 1
 audio_chunks = [audio_string[i:i+chunk_size] for i in range(0, len(audio_string), chunk_size)]
 
@@ -31,7 +31,7 @@ for i, prompt in enumerate(prompts):
     completions = openai.Completion.create(
         engine="text-davinci-002",
         prompt=prompt,
-        max_tokens=1024,
+        max_tokens=chunk_size,
         n=1,
         stop=None,
         temperature=0.5,
