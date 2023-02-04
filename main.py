@@ -16,8 +16,6 @@ def convert_to_srt(result, file):
             file.write(str(subtitle_num) + "\n")
             
             # Write the start and end times for the segment
-            # start_time = str(int(segment['start'] // 60)).zfill(2) + ":" + str(int(segment['start'] % 60)).zfill(2) + "," + str(int((segment['start'] % 1) * 1000)).zfill(3)
-            # end_time = str(int(segment['end'] // 60)).zfill(2) + ":" + str(int(segment['end'] % 60)).zfill(2) + "," + str(int((segment['end'] % 1) * 1000)).zfill(3)
             start_time = str(int(segment['start'] // 3600)).zfill(2) + ":" + str(int((segment['start'] % 3600) // 60)).zfill(2) + ":" + str(int(segment['start'] % 60)).zfill(2) + "," + str(int((segment['start'] % 1) * 1000)).zfill(3)
             end_time = str(int(segment['end'] // 3600)).zfill(2) + ":" + str(int((segment['end'] % 3600) // 60)).zfill(2) + ":" + str(int(segment['end'] % 60)).zfill(2) + "," + str(int((segment['end'] % 1) * 1000)).zfill(3)
 
