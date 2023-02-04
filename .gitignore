@@ -1,3 +1,2 @@
 *.mp4
-*.srt
-*.mp3
+.DS_Store
